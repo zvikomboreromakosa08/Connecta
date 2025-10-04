@@ -1,0 +1,27 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies (using npm ci for speed and --only=production for smaller image size)
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# --- Security Hardening: Create non-root user and change ownership ---
+# Create group and user 'nextjs'
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Change ownership of the app directory to the new non-root user
+RUN chown -R nextjs:nodejs /app
+
+# Switch to the non-root user for running the application
+USER nextjs
+
+EXPOSE 5000
+
+ENV NODE_ENV=production
+
+CMD ["node", "server.js"]

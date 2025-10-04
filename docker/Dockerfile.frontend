@@ -1,0 +1,22 @@
+# --- Build Stage (Using Node 18 Alpine for efficiency) ---
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies (using 'npm ci' for predictable installs)
+COPY package*.json ./
+RUN npm ci
+
+# Copy application source code
+COPY . .
+
+# Build the application (creates the static 'build' directory)
+RUN npm run build
+
+# Install 'serve' globally to run the static assets
+RUN npm install -g serve
+
+EXPOSE 3000
+
+# Command to serve the static content from the 'build' folder on port 3000
+CMD ["serve", "-s", "build", "-l", "3000"]

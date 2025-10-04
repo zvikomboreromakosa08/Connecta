@@ -1,0 +1,20 @@
+{
+  "name": "your-project-root",
+  "version": "1.0.0",
+  "description": "Deployment scripts for microservices architecture.",
+  "main": "index.js",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "build:frontend": "cd frontend && npm run build",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "deploy:prod": "npm run build:frontend && npm run docker:build && npm run docker:up",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
