@@ -1,0 +1,13 @@
+Dependency directories
+
+/node_modules
+/frontend/node_modules
+/backend/node_modules
+Build artifacts
+
+/frontend/build
+/backend/dist
+/frontend/.expo
+.env
+.DS_Store
+npm-debug.log

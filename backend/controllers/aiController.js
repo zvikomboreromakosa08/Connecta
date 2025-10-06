@@ -1,17 +1,15 @@
 // backend/controllers/aiController.js
 
-const { Configuration, OpenAIApi } = require('openai');
+// ✅ Updated OpenAI SDK import (v4+)
+const OpenAI = require('openai');
 const express = require('express');
 const auth = require('../middleware/auth'); // Import auth middleware
 const router = express.Router();
 
-// Initialize OpenAI Configuration
-const configuration = new Configuration({
+// ✅ Initialize OpenAI API client
+const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
-
-// Create OpenAI API client
-const openai = new OpenAIApi(configuration);
 
 // ==========================================
 // UTILITY FUNCTIONS (Exported)
@@ -24,7 +22,7 @@ const openai = new OpenAIApi(configuration);
  */
 async function summarizeMessage(content) {
     try {
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo", // Use a fast chat model for simple summaries
             messages: [
                 {
@@ -40,7 +38,7 @@ async function summarizeMessage(content) {
             temperature: 0.3,
         });
 
-        return response.data.choices[0].message.content.trim();
+        return response.choices[0].message.content.trim();
     } catch (error) {
         console.error('Message summarization error:', error.message);
         return null; // Return null to indicate failure without crashing the app
@@ -79,7 +77,7 @@ router.post('/summarize-meeting', auth, async (req, res) => {
             4. Next Steps
         `;
 
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-4", // Use the most capable model for complex summarization
             messages: [
                 {
@@ -95,7 +93,7 @@ router.post('/summarize-meeting', auth, async (req, res) => {
             temperature: 0.3,
         });
 
-        const summary = response.data.choices[0].message.content;
+        const summary = response.choices[0].message.content;
         res.json({ summary });
     } catch (error) {
         console.error('AI Summarization error:', error.message);
@@ -126,7 +124,7 @@ router.post('/prioritize-notifications', auth, async (req, res) => {
             Return a strict JSON array of the original message objects, adding a 'priorityScore' (1-10) field, and ordered by the highest 'priorityScore' first.
         `;
 
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-4",
             messages: [
                 {
@@ -142,7 +140,7 @@ router.post('/prioritize-notifications', auth, async (req, res) => {
             temperature: 0.2,
         });
 
-        const content = response.data.choices[0].message.content.trim();
+        const content = response.choices[0].message.content.trim();
         // Attempt to parse the AI's JSON output
         const prioritizedMessages = JSON.parse(content);
 
@@ -175,7 +173,7 @@ router.post('/automate-tasks', auth, async (req, res) => {
             Suggest specific automations that could save time and reduce manual effort. Provide the suggestions as a numbered list with a title, description, and suggested tool (if applicable).
         `;
 
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-4",
             messages: [
                 {
@@ -191,14 +189,13 @@ router.post('/automate-tasks', auth, async (req, res) => {
             temperature: 0.4,
         });
 
-        const automationSuggestions = response.data.choices[0].message.content;
+        const automationSuggestions = response.choices[0].message.content;
         res.json({ automationSuggestions });
     } catch (error) {
         console.error('AI Automation error:', error.message);
         res.status(500).json({ error: 'Failed to generate automation suggestions' });
     }
 });
-
 
 // ==========================================
 // EXPORTS
