@@ -1,31 +1,33 @@
+// backend/routes/conferencing.js
+
 const express = require('express');
-const Meeting = require('../models/Meeting'); // We'll create a Meeting model if needed
-const auth = require('../middleware/auth');
 const router = express.Router();
+const auth = require('../middleware/auth');
+const {
+  createRealMeeting,
+  getMeetingDetails,
+  joinMeeting
+} = require('../controllers/realConferencingController');
 
-// Schedule a meeting
-router.post('/schedule', auth, async (req, res) => {
-  const { title, description, startTime, endTime, participants, channel } = req.body;
+// ------------------------------------
+// @route   POST /api/conferencing/create
+// @desc    Create a real meeting
+// @access  Private
+// ------------------------------------
+router.post('/create', auth, createRealMeeting);
 
-  try {
-    const meeting = new Meeting({
-      title,
-      description,
-      startTime,
-      endTime,
-      participants,
-      channel,
-      createdBy: req.user.id
-    });
+// ------------------------------------
+// @route   GET /api/conferencing/:meetingId
+// @desc    Get meeting details
+// @access  Private
+// ------------------------------------
+router.get('/:meetingId', auth, getMeetingDetails);
 
-    await meeting.save();
-    res.json(meeting);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// ... other routes for meetings
+// ------------------------------------
+// @route   POST /api/conferencing/:meetingId/join
+// @desc    Join a meeting
+// @access  Private
+// ------------------------------------
+router.post('/:meetingId/join', auth, joinMeeting);
 
 module.exports = router;
