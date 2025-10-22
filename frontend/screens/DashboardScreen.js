@@ -1,274 +1,91 @@
-// frontend/screens/DashboardScreen.js
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  FlatList
-} from 'react-native';
-import {
-  Text,
-  Card,
-  Title,
-  Button,
-  Avatar,
-  Chip,
-  ActivityIndicator
-} from 'react-native-paper';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Card, Title, Button, Avatar, Chip } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../contexts/AuthContext';
-import { useSocket } from '../contexts/SocketContext';
 
-const DashboardScreen = ({ navigation }) => {
-  const { user } = useAuth();
-  const { isConnected, listenToEvent } = useSocket();
-  const [channels, setChannels] = useState([]);
-  const [recentMessages, setRecentMessages] = useState([]);
-  const [upcomingMeetings, setUpcomingMeetings] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadDashboardData();
-    
-    const unsubscribe = listenToEvent('new-message', (message) => {
-      setRecentMessages(prev => [message, ...prev.slice(0, 4)]);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      const mockChannels = [
-        { _id: 'c1', name: 'General', description: 'Main chat', members: [{id: 1}, {id: 2}], isPrivate: false },
-        { _id: 'c2', name: 'Project Alpha', description: 'Feature planning', members: [{id: 1}], isPrivate: true },
-      ];
-
-      const mockMessages = [
-        { 
-          _id: 'm1', 
-          content: 'Team, please check the Alpha Project status update by 3 PM today.', 
-          sender: { name: 'Jane Doe' }, 
-          priority: 'urgent', 
-          aiSummary: 'Action required: Review Alpha status by 3 PM.' 
-        },
-        { 
-          _id: 'm2', 
-          content: 'Did anyone see the latest documentation updates?', 
-          sender: { name: 'John Smith' }, 
-          priority: 'medium', 
-          aiSummary: null 
-        },
-      ];
-
-      const mockMeetings = [
-        { 
-          _id: 'meet1', 
-          title: 'Weekly Standup', 
-          startTime: new Date(Date.now() + 60 * 60 * 1000).toISOString() 
-        },
-      ];
-
-      setChannels(mockChannels);
-      setRecentMessages(mockMessages);
-      setUpcomingMeetings(mockMeetings);
-    } catch (error) {
-      console.error('Dashboard data loading failed:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadDashboardData();
-  };
-
-  const getPriorityColor = (priority) => {
-    const colors = {
-      urgent: '#FEF2F2',
-      high: '#FFFBEB',
-      medium: '#F0F9FF',
-      low: '#F0FDF4'
-    };
-    return colors[priority] || '#F0F9FF';
-  };
-
-  const renderChannelItem = ({ item }) => (
-    <Card 
-      style={styles.channelCard}
-      onPress={() => navigation.navigate('Channels', { 
-        screen: 'ChannelChat', 
-        params: { channelId: item._id, channelName: item.name }
-      })}
-    >
-      <Card.Content>
-        <View style={styles.channelHeader}>
-          <Avatar.Text 
-            size={40} 
-            label={item.name.substring(0, 2).toUpperCase()} 
-          />
-          <View style={styles.channelInfo}>
-            <Title style={styles.channelName}>{item.name}</Title>
-            <Text style={styles.channelMembers}>
-              {item.members.length} members
-            </Text>
-          </View>
-          {item.isPrivate && (
-            <Chip icon="lock" style={styles.privateChip}>Private</Chip>
-          )}
-        </View>
-      </Card.Content>
-    </Card>
-  );
-
-  const renderMessageItem = ({ item }) => (
-    <Card style={styles.messageCard}>
-      <Card.Content>
-        <View style={styles.messageHeader}>
-          <Avatar.Text 
-            size={32} 
-            label={item.sender.name.substring(0, 2).toUpperCase()} 
-          />
-          <View style={styles.messageInfo}>
-            <Text style={styles.senderName}>{item.sender.name}</Text>
-            <Text style={styles.messageContent} numberOfLines={2}>
-              {item.content}
-            </Text>
-          </View>
-          <Chip 
-            mode="outlined" 
-            size="small"
-            style={[styles.priorityChip, { backgroundColor: getPriorityColor(item.priority) }]}
-          >
-            {item.priority}
-          </Chip>
-        </View>
-        {item.aiSummary && (
-          <Text style={styles.aiSummary}>🤖 {item.aiSummary}</Text>
-        )}
-      </Card.Content>
-    </Card>
-  );
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366F1" />
-        <Text style={styles.loadingText}>Loading your dashboard...</Text>
-      </View>
-    );
-  }
-
+const DashboardScreen = () => {
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+    <ScrollView style={styles.container}>
+      {/* Welcome Card */}
       <Card style={styles.welcomeCard}>
         <Card.Content>
           <View style={styles.welcomeHeader}>
             <View>
-              <Title style={styles.welcomeTitle}>
-                Hello, {user?.name}! 👋
-              </Title>
-              <Text style={styles.welcomeSubtitle}>
-                Here's what's happening today
-              </Text>
+              <Title style={styles.welcomeTitle}>Welcome back!</Title>
+              <Text style={styles.welcomeSubtitle}>Here's what's happening today.</Text>
             </View>
-            <Avatar.Text 
-              size={50} 
-              label={user?.name?.substring(0, 2).toUpperCase() || 'UU'} 
-            />
+            <Avatar.Text size={40} label="ZK" />
           </View>
           
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{channels.length}</Text>
-              <Text style={styles.statLabel}>Channels</Text>
+              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statLabel}>Messages</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{recentMessages.length}</Text>
-              <Text style={styles.statLabel}>New Messages</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{upcomingMeetings.length}</Text>
+              <Text style={styles.statNumber}>3</Text>
               <Text style={styles.statLabel}>Meetings</Text>
             </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>8</Text>
+              <Text style={styles.statLabel}>Channels</Text>
+            </View>
           </View>
-          {!isConnected && (
-            <Text style={styles.connectionWarning}>
-              ⚠️ Limited functionality - No network connection
-            </Text>
-          )}
         </Card.Content>
       </Card>
 
+      {/* Quick Actions */}
       <View style={styles.quickActions}>
-        <Button
-          mode="contained"
-          icon="plus"
-          onPress={() => navigation.navigate('CreateChannel')}
-          style={styles.actionButton}
-          contentStyle={styles.actionButtonContent}
-        >
-          New Channel
+        <Button mode="contained" style={styles.actionButton} icon="message-text">
+          New Message
         </Button>
-        <Button
-          mode="outlined"
-          icon="video"
-          onPress={() => navigation.navigate('Conferencing')}
-          style={styles.actionButton}
-          contentStyle={styles.actionButtonContent}
-        >
-          Start Meeting
+        <Button mode="outlined" style={styles.actionButton} icon="video">
+          Join Call
         </Button>
       </View>
 
+      {/* Recent Channels */}
+      <Title style={styles.sectionTitle}>Recent Channels</Title>
+      <Card style={styles.channelCard}>
+        <Card.Content>
+          <View style={styles.channelHeader}>
+            <Avatar.Text size={40} label="GN" />
+            <View style={styles.channelInfo}>
+              <Text style={styles.channelName}>General</Text>
+              <Text style={styles.channelMembers}>24 members • 5 new messages</Text>
+            </View>
+            <Chip mode="outlined" style={styles.privateChip}>Team</Chip>
+          </View>
+        </Card.Content>
+      </Card>
+
+      {/* Recent Messages */}
       <Title style={styles.sectionTitle}>Recent Messages</Title>
-      <FlatList
-        data={recentMessages}
-        renderItem={renderMessageItem}
-        keyExtractor={item => item._id}
-        scrollEnabled={false}
-      />
+      <Card style={styles.messageCard}>
+        <Card.Content>
+          <View style={styles.messageHeader}>
+            <Avatar.Text size={40} label="JD" />
+            <View style={styles.messageInfo}>
+              <Text style={styles.senderName}>John Doe</Text>
+              <Text style={styles.messageContent}>Let's schedule the project review for tomorrow...</Text>
+              <Text style={styles.aiSummary}>AI Summary: Scheduling project review meeting</Text>
+            </View>
+            <Chip mode="outlined" style={styles.priorityChip}>High</Chip>
+          </View>
+        </Card.Content>
+      </Card>
 
-      <Title style={styles.sectionTitle}>Your Channels</Title>
-      <FlatList
-        data={channels.slice(0, 5)}
-        renderItem={renderChannelItem}
-        keyExtractor={item => item._id}
-        scrollEnabled={false}
-      />
-
-      {upcomingMeetings.length > 0 && (
-        <>
-          <Title style={styles.sectionTitle}>Upcoming Meetings</Title>
-          {upcomingMeetings.map(meeting => (
-            <Card key={meeting._id} style={styles.meetingCard}>
-              <Card.Content>
-                <Text style={styles.meetingTitle}>{meeting.title}</Text>
-                <Text style={styles.meetingTime}>
-                  {new Date(meeting.startTime).toLocaleString()}
-                </Text>
-                <Button
-                  mode="contained"
-                  compact
-                  onPress={() => navigation.navigate('Conferencing', { meetingId: meeting._id })}
-                  disabled={!isConnected}
-                >
-                  Join Meeting
-                </Button>
-              </Card.Content>
-            </Card>
-          ))}
-        </>
-      )}
+      {/* Upcoming Meetings */}
+      <Title style={styles.sectionTitle}>Upcoming Meetings</Title>
+      <Card style={styles.meetingCard}>
+        <Card.Content>
+          <Text style={styles.meetingTitle}>Project Sync</Text>
+          <Text style={styles.meetingTime}>Today • 2:00 PM - 3:00 PM</Text>
+          <Button mode="contained" style={{marginTop: 8}}>
+            Join Meeting
+          </Button>
+        </Card.Content>
+      </Card>
     </ScrollView>
   );
 };
@@ -283,77 +100,69 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: 10,
     fontSize: 16,
-    color: '#6B7280',
+    color: '#374151',
   },
   welcomeCard: {
     marginBottom: 16,
-    elevation: 2,
-    borderRadius: 12,
   },
   welcomeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
   welcomeTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#374151',
   },
   welcomeSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#6B7280',
-    marginTop: 4,
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    marginTop: 16,
+    justifyContent: 'space-between',
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#6366F1',
   },
   statLabel: {
     fontSize: 12,
     color: '#6B7280',
-    marginTop: 4,
   },
   connectionWarning: {
-    color: '#DC2626',
-    fontSize: 12,
-    marginTop: 12,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    marginTop: 10,
+    color: '#B91C1C',
+    fontWeight: 'bold',
   },
   quickActions: {
     flexDirection: 'row',
-    marginBottom: 24,
-    gap: 12,
+    justifyContent: 'space-between',
+    marginVertical: 16,
   },
   actionButton: {
     flex: 1,
-    borderRadius: 8,
+    marginHorizontal: 4,
   },
   actionButtonContent: {
-    paddingVertical: 6,
+    flexDirection: 'row-reverse',
   },
   sectionTitle: {
-    marginVertical: 16,
-    color: '#374151',
+    marginVertical: 8,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   channelCard: {
-    marginBottom: 8,
-    elevation: 1,
+    marginVertical: 4,
   },
   channelHeader: {
     flexDirection: 'row',
@@ -361,64 +170,54 @@ const styles = StyleSheet.create({
   },
   channelInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 8,
   },
   channelName: {
     fontSize: 16,
-    marginBottom: 0,
+    fontWeight: 'bold',
   },
   channelMembers: {
     fontSize: 12,
     color: '#6B7280',
   },
   privateChip: {
-    marginLeft: 'auto',
+    backgroundColor: '#E5E7EB',
   },
   messageCard: {
-    marginBottom: 8,
-    elevation: 1,
+    marginVertical: 4,
   },
   messageHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   messageInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 8,
   },
   senderName: {
     fontWeight: 'bold',
-    fontSize: 14,
   },
   messageContent: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  priorityChip: {
-    marginLeft: 'auto',
+    color: '#374151',
   },
   aiSummary: {
-    fontSize: 11,
-    color: '#059669',
+    marginTop: 4,
     fontStyle: 'italic',
-    marginTop: 8,
-    backgroundColor: '#ECFDF5',
-    padding: 8,
-    borderRadius: 4,
+    color: '#6B7280',
+  },
+  priorityChip: {
+    marginLeft: 8,
   },
   meetingCard: {
-    marginBottom: 8,
-    elevation: 1,
+    marginVertical: 4,
   },
   meetingTitle: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
   },
   meetingTime: {
     fontSize: 12,
     color: '#6B7280',
-    marginBottom: 8,
   },
 });
 

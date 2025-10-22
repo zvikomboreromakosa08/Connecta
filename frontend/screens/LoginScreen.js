@@ -1,4 +1,3 @@
-// frontend/screens/LoginScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -25,7 +24,7 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const { login } = useAuth();
+  const { login, register } = useAuth();
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -34,24 +33,20 @@ const LoginScreen = ({ navigation }) => {
     }
 
     setLoading(true);
-    try {
-      setTimeout(() => {
-        const mockUser = {
-          id: 'user123',
-          name: 'Test User',
-          email: email,
-          department: 'Engineering',
-          profilePicture: '',
-          title: 'Software Developer'
-        };
-        
-        const mockToken = 'mock-jwt-token-123';
-        login(mockUser, mockToken);
-        setLoading(false);
-      }, 1500);
-    } catch (error) {
-      Alert.alert('Authentication Failed', 'Invalid credentials');
-      setLoading(false);
+    let result;
+
+    if (isSignUp) {
+      result = await register({ email, password });
+    } else {
+      result = await login(email, password);
+    }
+
+    setLoading(false);
+
+    if (result.success) {
+      navigation.replace('Main'); // Change this to your main tab/screen
+    } else {
+      Alert.alert('Authentication Failed', result.error);
     }
   };
 
@@ -64,11 +59,7 @@ const LoginScreen = ({ navigation }) => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.logoContainer}>
-              <Avatar.Icon 
-                size={80} 
-                icon="chat" 
-                style={styles.logo}
-              />
+              <Avatar.Icon size={80} icon="chat" style={styles.logo} />
               <Title style={styles.title}>Connecta</Title>
               <Text style={styles.subtitle}>
                 {isSignUp ? 'Create your account' : 'Welcome back!'}
@@ -156,76 +147,22 @@ const LoginScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#6366F1',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  card: {
-    elevation: 8,
-    borderRadius: 16,
-    backgroundColor: 'white',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logo: {
-    backgroundColor: '#6366F1',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#374151',
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: 'white',
-  },
-  button: {
-    marginTop: 8,
-    borderRadius: 8,
-    elevation: 2,
-  },
-  buttonContent: {
-    paddingVertical: 8,
-  },
-  loader: {
-    marginVertical: 16,
-  },
-  switchButton: {
-    marginTop: 16,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  oauthButton: {
-    marginBottom: 12,
-    borderColor: '#E5E7EB',
-  },
+  container: { flex: 1, backgroundColor: '#6366F1' },
+  scrollContainer: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  card: { elevation: 8, borderRadius: 16, backgroundColor: 'white' },
+  logoContainer: { alignItems: 'center', marginBottom: 32 },
+  logo: { backgroundColor: '#6366F1', marginBottom: 16 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#374151', textAlign: 'center' },
+  subtitle: { color: '#6B7280', textAlign: 'center', marginTop: 8 },
+  input: { marginBottom: 16, backgroundColor: 'white' },
+  button: { marginTop: 8, borderRadius: 8, elevation: 2 },
+  buttonContent: { paddingVertical: 8 },
+  loader: { marginVertical: 16 },
+  switchButton: { marginTop: 16 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 24 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#E5E7EB' },
+  dividerText: { marginHorizontal: 16, color: '#6B7280', fontWeight: '500' },
+  oauthButton: { marginBottom: 12, borderColor: '#E5E7EB' },
 });
 
 export default LoginScreen;

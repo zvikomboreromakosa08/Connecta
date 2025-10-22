@@ -1,4 +1,3 @@
-// frontend/App.js
 import React from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -7,7 +6,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import real contexts with correct relative paths
+// ⚠️ React DOM checks for multiple React copies
+require('react-dom');
+window.React2 = require('react');
+console.log("Are React copies the same?", window.React1 === window.React2);
+
+// Import contexts
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 
@@ -17,6 +21,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import ChannelScreen from './screens/ChannelScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import ConferencingScreen from './screens/ConferencingScreen';
+import VideoCallScreen from './screens/VideoCallScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,15 +33,10 @@ function TabNavigator() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === 'Dashboard') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Channels') {
-            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
-          } else if (route.name === 'Conferencing') {
-            iconName = focused ? 'videocam' : 'videocam-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
+          if (route.name === 'Dashboard') iconName = focused ? 'home' : 'home-outline';
+          else if (route.name === 'Channels') iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          else if (route.name === 'Conferencing') iconName = focused ? 'videocam' : 'videocam-outline';
+          else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -62,9 +62,9 @@ function SplashScreen() {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <SplashScreen />;
   }
 
@@ -72,7 +72,10 @@ function AppContent() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="Main" component={TabNavigator} />
+          <>
+            <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen name="VideoCall" component={VideoCallScreen} />
+          </>
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />
         )}

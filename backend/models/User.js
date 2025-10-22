@@ -1,4 +1,4 @@
-// backend/models/User.js - Updated with real encryption
+// backend/models/User.js - Fixed and compatible with registration
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -12,10 +12,10 @@ const userSchema = new mongoose.Schema({
   department: { type: String, required: true },
   profilePicture: { type: String, default: '' },
 
-  // Real encryption key management
+  // Real encryption key management (not required on registration)
   encryptionKeys: {
-    publicKey: { type: String, required: true },
-    privateKey: { type: String, required: true } // Will be encrypted
+    publicKey: { type: String, default: null },
+    privateKey: { type: String, default: null } // stored encrypted
   },
 
   // User status management
@@ -34,12 +34,15 @@ const userSchema = new mongoose.Schema({
   // Audit fields
   lastLogin: { type: Date },
   loginAttempts: { type: Number, default: 0 },
-  accountLocked: { type: Boolean, default: false }
+  accountLocked: { type: Boolean, default: false },
+
+  // Optional: for Clerk or external integrations
+  clerkId: { type: String, default: null }
 }, { 
   timestamps: true 
 });
 
-// Hash password before saving
+// 🔐 Hash password before saving
 userSchema.pre('save', async function(next) {
   if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 12);
@@ -47,30 +50,30 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Encrypt private key before saving
+// 🔏 Encrypt private key before saving (if it exists)
 userSchema.pre('save', async function(next) {
   if (!this.isModified('encryptionKeys.privateKey')) return next();
-
   if (this.encryptionKeys.privateKey) {
     this.encryptionKeys.privateKey = await bcrypt.hash(
-      this.encryptionKeys.privateKey, 
+      this.encryptionKeys.privateKey,
       12
     );
   }
   next();
 });
 
-// Generate encryption keys for new users
-userSchema.methods.generateEncryptionKeys = function() {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: 'spki', format: 'pem' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
-  });
-
-  this.encryptionKeys = { publicKey, privateKey };
-  return { publicKey, privateKey };
-};
+// 🔑 Generate encryption keys automatically if missing
+userSchema.pre('save', function(next) {
+  if (!this.encryptionKeys.publicKey || !this.encryptionKeys.privateKey) {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+    });
+    this.encryptionKeys = { publicKey, privateKey };
+  }
+  next();
+});
 
 // Compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {

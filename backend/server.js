@@ -15,28 +15,51 @@ const authRoutes = require('./routes/auth');
 const channelRoutes = require('./routes/channels');
 const messageRoutes = require('./routes/messages');
 const conferencingRoutes = require('./routes/conferencing');
-const aiRoutes = require('./routes/ai'); // ✅ Confirmed export
+const aiRoutes = require('./routes/ai'); 
 const analyticsMiddleware = require('./middleware/analytics');
 
 const app = express();
 const server = http.createServer(app);
+
+// -----------------------------
+// Secure CORS Configuration
+// -----------------------------
+const allowedOrigins = [
+  process.env.FRONTEND_URL,            // production frontend (if set)
+  'http://localhost:3000',             // React web (CRA)
+  'http://localhost:19006',            // Expo web
+  'http://127.0.0.1:19006'             // alternate local Expo URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`❌ Blocked by CORS: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
+// -----------------------------
+// Socket.io Setup
+// -----------------------------
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST']
   }
 });
 
 // -----------------------------
-// Middleware
+// Security & Middleware
 // -----------------------------
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(compression());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000'
-}));
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -66,17 +89,17 @@ app.use('/api/auth', authRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/conferencing', conferencingRoutes);
-app.use('/api/ai', aiRoutes); // ✅ Correct middleware registration
+app.use('/api/ai', aiRoutes);
 
 // -----------------------------
 // Socket.io Events
 // -----------------------------
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  console.log('🟢 User connected:', socket.id);
 
   socket.on('join-channel', (channelId) => {
     socket.join(channelId);
-    console.log(`User ${socket.id} joined channel ${channelId}`);
+    console.log(`👥 User ${socket.id} joined channel ${channelId}`);
   });
 
   socket.on('send-message', (messageData) => {
@@ -102,7 +125,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    console.log('🔴 User disconnected:', socket.id);
   });
 });
 
